@@ -74,11 +74,11 @@ class LeoParser:
         return parsed_structs, parsed_records
 
     def parse_functions(self) -> List[ParsedFunction]:
-        function_pattern = r"transition\s+(\w+)\s*\(([^)]*)\)\s*->\s*\(?(.+?)\)?\s*\{"
+        function_pattern = r"transition\s+(\w+)\s*\(([^)]*)\)\s*(->\s*\(?(.+?)\)?\s*)?\{"
         functions = re.findall(function_pattern, self.content)
         parsed_functions = []
 
-        for func_name, input_params, out_params in functions:
+        for func_name, input_params, _, out_params in functions:
             param_pattern = r"(public|private|constant)?\s*(\w+):\s*((\w+\.leo\/)?\w+)(\.record)?"
             input_params = re.findall(param_pattern, input_params)
 

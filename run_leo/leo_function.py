@@ -2,7 +2,7 @@ import json
 import re
 
 from .leo_struct import LeoStruct
-from .utils import run_command_in_directory
+from .utils import run_command_in_directory, LeoDataType
 
 
 class LeoFunction:
@@ -29,16 +29,16 @@ class LeoFunction:
             else:
                 raise AssertionError(f'Missing function args {param[1]}')
             data_type = param[2]
-            if data_type == 'bool':
+            if data_type in LeoDataType.BOOL:
                 assert isinstance(value, bool), f'{param[1]} type error, require bool'
                 tmp = 'true' if value else 'false'
-            elif data_type in ['i8', 'i16', 'i32', 'i64', 'i128']:
+            elif data_type in LeoDataType.SIGNED:
                 assert isinstance(value, int), f'{param[1]} type error, require {data_type}'
                 tmp = f'{value}{data_type}'
-            elif data_type in ['u8', 'u16', 'u32', 'u64', 'u128', 'group', 'field', 'scalar']:
+            elif data_type in LeoDataType.ARITHMETIC:
                 assert isinstance(value, int) and value >= 0, f'{param[1]} type error, require unsigned int'
                 tmp = f'{value}{data_type}'
-            elif data_type == 'address':
+            elif data_type in LeoDataType.ADDRESS:
                 tmp = value
             else:
                 # Struct or Record
@@ -55,23 +55,24 @@ class LeoFunction:
         :param value:
         :return:
         """
-        if data_type == 'bool':
+        if data_type in LeoDataType.BOOL:
             return value == 'true'
-        elif data_type in ['i8', 'i16', 'i32', 'i64', 'i128', 'u8', 'u16', 'u32', 'u64', 'u128',
-                           'group', 'field', 'scalar']:
+        elif data_type in LeoDataType.ARITHMETIC:
             return int(value.replace(data_type, ''))
-        elif data_type == 'address':
+        elif data_type in LeoDataType.ADDRESS:
             return value
         elif issubclass(data_type, LeoStruct):
             # For LeoStruct or LeoRecord types, we assume that 'value' is a dictionary
             # where keys are field names and values are string representations of field values.
             instance = data_type()
-            for field_name, field_value_str in value.items():
+            for field_name, field_value in value.items():
                 if field_name == '_nonce':
-                    field_type = 'group'
+                    vis, field_type = 'public', 'group'
                 else:
-                    field_type = next(field[2] for field in data_type.fields if field[1] == field_name)
-                instance[field_name] = self.__parse_type(field_type, field_value_str)
+                    vis, field_type = next((field[0], field[2]) for field in data_type.fields if field[1] == field_name)
+                if isinstance(field_value, str) and field_value.endswith(f'.{vis}'):
+                    field_value = field_value[:-1 - len(vis)]
+                instance[field_name] = self.__parse_type(field_type, field_value)
             return instance
 
     def __parse_output(self, output):
@@ -94,7 +95,7 @@ class LeoFunction:
                     output_type = self.output_params[len(outputs)]
                     part_match = part_pattern.findall(part)
                     if part_match:
-                        outputs.append(self.__parse_type(output_type, json.loads(re.sub(r'\b(\w+)\b', r'"\1"', part))))
+                        outputs.append(self.__parse_type(output_type, json.loads(re.sub(r'\b(\w+(?:\.\w+)?)\b', r'"\1"', part))))
                     else:
                         outputs.append(self.__parse_type(output_type, part))
         return outputs[0] if len(outputs) == 1 else tuple(outputs)
