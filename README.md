@@ -10,6 +10,21 @@ In the import sections of Leo programs, the naming of structs and records will b
 
 The Leo Program Runner also offers automatic conversion between Python and Leo data types. When you call a method (representing a `transition` function) of the Python class, it takes care of converting the provided arguments into a format suitable for Leo programs, executes the computation, and then converts the results back into a Python-friendly format. This ensures a seamless development experience, making the interaction with a Leo program feel just like working with a Python package.
 
+## Reproducible Results
+
+To obtain reproducible results with the Leo Program Runner, it is important to provide consistent input data and parameters. This means that you should:
+
+- Use the same versions of Python and any dependencies. We recommend Python 3.8 or later.
+- Use the same input data each time. You should avoid relying on data that may change over time, such as live web data or random numbers, unless you specifically want to test how the program handles changing data.
+
+If you encounter any inconsistencies in your results, please first check these factors.
+
+## Impact, Usability, and Extensibility
+
+The Leo Program Runner has a significant impact on the Python ZkML tooling ecosystem. It provides a novel approach to interacting with Leo programs within the Python environment, which greatly simplifies the development process. The automatic conversion between Python and Leo data types makes the tool highly usable for machine learning developers and practitioners.
+
+Furthermore, the Leo Program Runner is designed with extensibility in mind. While it currently supports importing Leo programs from a specific directory, it could be extended in the future to support importing from the web or other sources. As the Leo language continues to evolve, the Leo Program Runner will also adapt and update, with new releases tracking changes and enhancements in the Leo language.
+
 ## Installation
 
 You can easily install the package using pip:
