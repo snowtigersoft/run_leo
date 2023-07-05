@@ -7,8 +7,6 @@ program token.aleo {
     record token {
         // The token owner.
         owner: address,
-        // The Aleo balance (in gates).
-        gates: u64,
         // The token amount.
         amount: u64,
     }
@@ -25,7 +23,7 @@ program token.aleo {
         // Increments `account[receiver]` by `amount`.
         // If `account[receiver]` does not exist, it will be created.
         // If `account[receiver] + amount` overflows, `mint_public` is reverted.
-        let receiver_amount: u64 = Mapping::get_or_init(account, receiver, 0u64);
+        let receiver_amount: u64 = Mapping::get_or_use(account, receiver, 0u64);
         Mapping::set(account, receiver, receiver_amount + amount);
     }
 
@@ -33,7 +31,6 @@ program token.aleo {
     transition mint_private(receiver: address, amount: u64) -> token {
         return token {
             owner: receiver,
-            gates: 0u64,
             amount: amount,
         };
     }
@@ -48,13 +45,13 @@ program token.aleo {
         // Decrements `account[sender]` by `amount`.
         // If `account[sender]` does not exist, it will be created.
         // If `account[sender] - amount` underflows, `transfer_public` is reverted.
-        let sender_amount: u64 = Mapping::get_or_init(account, sender, 0u64);
+        let sender_amount: u64 = Mapping::get_or_use(account, sender, 0u64);
         Mapping::set(account, sender, sender_amount - amount);
         
         // Increments `account[receiver]` by `amount`.
         // If `account[receiver]` does not exist, it will be created.
         // If `account[receiver] + amount` overflows, `transfer_public` is reverted.
-        let receiver_amount: u64 = Mapping::get_or_init(account, receiver, 0u64);
+        let receiver_amount: u64 = Mapping::get_or_use(account, receiver, 0u64);
         Mapping::set(account, receiver, receiver_amount + amount);
     }
 
@@ -68,14 +65,12 @@ program token.aleo {
         // Produce a token record with the change amount for the sender.
         let remaining: token = token {
             owner: sender.owner,
-            gates: sender.gates,
             amount: difference,
         };
 
         // Produce a token record for the specified receiver.
         let transferred: token = token {
             owner: receiver,
-            gates: 0u64,
             amount: amount,
         };
 
@@ -94,7 +89,6 @@ program token.aleo {
         // Produces a token record with the change amount for the caller.
         let remaining: token = token {
             owner: sender.owner,
-            gates: sender.gates,
             amount: difference,
         };
 
@@ -107,7 +101,7 @@ program token.aleo {
         // Increments `account[receiver]` by `amount`.
         // If `account[receiver]` does not exist, it will be created.
         // If `account[receiver] + amount` overflows, `transfer_private_to_public` is reverted.
-        let receiver_amount: u64 = Mapping::get_or_init(account, receiver, 0u64);
+        let receiver_amount: u64 = Mapping::get_or_use(account, receiver, 0u64);
         Mapping::set(account, receiver, receiver_amount + amount);
     }
 
@@ -117,7 +111,6 @@ program token.aleo {
         // Produces a token record for the token receiver.
         let transferred: token = token {
             owner: receiver,
-            gates: 0u64,
             amount: amount,
         };
 
@@ -130,7 +123,7 @@ program token.aleo {
         // Decrements `account[sender]` by `amount`.
         // If `account[sender]` does not exist, it will be created.
         // If `account[sender] - amount` underflows, `transfer_public_to_private` is reverted.
-        let sender_amount: u64 = Mapping::get_or_init(account, sender, 0u64);
+        let sender_amount: u64 = Mapping::get_or_use(account, sender, 0u64);
         Mapping::set(account, sender, sender_amount - amount);
     }
 }

@@ -10,7 +10,6 @@ program vote.aleo {
     // Proposal record records proposal info publicly
     record Proposal {
         owner: address,
-        gates: u64,
         id: field,
         info: ProposalInfo,
     }
@@ -21,7 +20,6 @@ program vote.aleo {
     // Privacy tickets to vote
     record Ticket {
         owner: address,
-        gates: u64,
         pid: field,
     }
 
@@ -44,7 +42,6 @@ program vote.aleo {
         // Finalize the proposal id.
         return Proposal {
             owner: self.caller,
-            gates: 0u64,
             id,
             info,
         } then finalize(id);
@@ -62,13 +59,12 @@ program vote.aleo {
         // Finalize the proposal id for the ticket.
         return Ticket {
             owner: voter,
-            gates: 0u64,
             pid,
         } then finalize(pid);
     }
     // Create a new ticket on a proposal in the "tickets" mapping.
     finalize new_ticket(public pid: field) {
-        let vote: u64 = Mapping::get_or_init(tickets, pid, 0u64);
+        let vote: u64 = Mapping::get_or_use(tickets, pid, 0u64);
         Mapping::set(tickets, pid, vote + 1u64);
     }
 
@@ -79,7 +75,7 @@ program vote.aleo {
     }
     finalize agree(public pid: field) {
         // Publicly increment the number of agree votes.
-        let agree_vote: u64 = Mapping::get_or_init(agree_votes, pid, 0u64);
+        let agree_vote: u64 = Mapping::get_or_use(agree_votes, pid, 0u64);
         Mapping::set(agree_votes, pid, agree_vote + 1u64);
     }
 
@@ -90,7 +86,7 @@ program vote.aleo {
     }
     finalize disagree(pid: field) {
         // Publicly increment the number of disagree votes.
-        let disagree_vote: u64 = Mapping::get_or_init(disagree_votes, pid, 0u64);
+        let disagree_vote: u64 = Mapping::get_or_use(disagree_votes, pid, 0u64);
         Mapping::set(disagree_votes, pid, disagree_vote + 1u64);
     }
 }
